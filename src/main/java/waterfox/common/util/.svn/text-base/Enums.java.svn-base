@@ -1,0 +1,727 @@
+/**
+ * 公共包
+ * @author Jerry
+ * @version v1.0 Enums.java 2013-9-24 下午06:19:41
+ * 
+ */
+package com.zxsf360.mortgage.common;
+
+
+
+/**
+ * Enums 项目中定义的枚举
+ * @author Jerry
+ * @version v1.0 Enums.java 2013-9-24 下午06:19:41
+ */
+public class Enums {
+
+	/**
+	 * GLOBAL_CONFIG_KEY classpath:config.properties 对应的key
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-25 上午11:16:02
+	 */
+	public enum GLOBAL_CONFIG_KEY {
+		AMS_URL, AMS_KEY, AMS_IP,SHIFU_URL, QY_URL, SJS_URL,AMS_PFORM, SAS_URL, SAS_KEY, SAS_IP, FS_URL, 
+		/* 短信渠道配置，1为注册渠道，速度最快，2为cpc下载发送短信渠道*/
+		SMS_URL, SMS_USERNAME1, SMS_PASSWORD1, SMS_SUBUSER1,
+				 SMS_USERNAME2, SMS_PASSWORD2, SMS_SUBUSER2,
+		ORDER_URL,GIFT_URL, BC_URL, BC_IP, BC_KEY, 
+		CPC_PC_DEFAULT_CHANNEL,CPC_WAP_DEFAULT_CHANNEL,WWW_DEFAULT_CHANNEL,
+		PC_DEFAULT_URL,ANDROID_DEFAULT_URL, S60V3_DEFAULT_URL, 
+		S60V5_DEFAULT_URL,JAVA_DEFAULT_URL,APPLE_DEFAULT_URL,APPLE_IPAD_DEFAULT_URL,
+		CPC_SMS_CONTENT,CPC_COOKIE_MAX_AGE,DOWNLOAD_DAY_LIMIT_PHONE,
+		SMS_CONTENT,LIMIT_LOGIN_MAX,
+		/** 绑定手机下发验证码限制次数 */
+		LIMIT_BINDPHONE_CODE,
+		GOODS_CONFIG_URL,PULLMSG_URL,
+		GOODS_INFO_URL,
+		/** 统计监控历史数据保存时间，超过时间后，将转移历史表 */
+		STATISTICS_HISTORY_MAX_DATE,
+		/** 统计出错接受告警短信手机号 */
+		STATISTICS_ERROR_CALL_PHONES,
+		/** cpc页面访问允许最大间隔时间 */
+		CPC_INTERVAL_MINUTE,
+		/** 接受cpc告警短信手机号列表 */
+		CPC_ERROR_CALL_PHONES,
+		/** cpc告警短信内容*/
+		CPC_ERROR_SMS_CONTENT,FIND_PASSWORD_SMS,
+		/** 效果图*/
+		INDEX_STORE_PATH_JZ,INDEX_STORE_PATH_GZ,
+		CATEGORY,
+		/**qq开放平台**/
+		QQ_OPEN_URL,QQ_APPID,QQ_APPKEY,QQ_OPEN_NICK_URL,
+		/**sina开放平台 **/
+		SINAWB_OPEN_URL,SINAWB_APPID,SINAWB_APPKEY,SINAWB_REDIRECT_URL,SINAWB_OPEN_NICK_URL,
+		/**人人开放平台**/
+		RR_OPEN_URL,RR_APPID,RR_APPKEY,RR_GET_ACCESS_TOKEN_BY_CODE,RR_REDIRECT_URL,
+		
+		/**第三方注册的默认渠道(当渠道为空的时候)**/
+		THIRD_REG_DEFAULT_CHANNEL,THIRD_REG_DEFAULT_FLAG,
+		
+		/**第三方注册**/
+		MOBILE_SERVER_URL,MOBILE_SERVER_KEY,MOBILE_SERVER_PARAM_KEY,
+		
+		/**亲情号码**/
+		FN_URL,
+		/**积分系统*/
+		CREDITS_URL,
+		RATE_REG_URL,
+		CB_URL,
+		DESGINER_HTML,
+		MOLS_PHONE,
+		MOLS_ZXZLPHONE,
+		CONF_BASEMODEL_UID,
+		HTML2IMAGE_PATH,
+		HTML2IMAGE_SAVEBASE,
+		
+		/** CMS **/
+		WEBAPP_PATH,
+		INDEX_STORE_PATH_GLOABLE,
+		/** redis **/
+		REDIS_KEY,
+		ACTIVITY_TIME,
+		ACTIVITY_PAY_MONEY,
+		FSIMAGE_PATH,
+		SEND_ENQUIRY_NORMAL,//按揭员/普通用户赠送免费次数
+		SEND_ENQUIRY_MANAGER,//赠送客户经理免费次数
+		SEND_ARCHIVE_NORMAL,//按揭员/普通用户赠送查档免费次数
+		SEND_ARCHIVE_MANAGER,//客户经理赠送查档免费次数
+		TECHNICAL_SUPPORT_PHONE,//技术支持电话
+		CONTRACT_COUNT,//同时申请打合同限制次数
+		ARCHIVE_EMAIL,//打合同,查档,代办过户发邮件地址
+		FREE_COUNT_DAY,//每月初始化客户经理询价优惠券固定日期(单位:天) 
+		REG_MANAGE_EMAIL,//注册客户经理发邮件
+		BASE_PATH,
+		COUPON_SEND_REF,
+		FREEABLE,//询价是否免费开关(1免费,0付费)
+		ARCHIVEFREEABLE,//查档是否免费开关(1免费,0付费),
+		ARCHIVEDAYCOUNT,//查檔每天限制次數
+		ENQUIRYDAYCOUNT,//询价每天限制次數
+		DOMAINNAME//域名地址
+	}
+	
+	
+	/**
+	 * FN_SERVICES 亲情系统服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum FN_SERVICES {
+		query,add,modify,delete
+	}
+	
+	/**
+	 * CREDITES_SERVICES 积分系统服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum CREDITES_SERVICES {
+		credits_info,query_log,exchange_goods
+	}
+	
+	
+	/**
+	 * QQ_OPEN_SERVICES qq开放平台服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum QQ_OPEN_SERVICES {
+		me,token
+	}
+	
+	/**
+	 * QQ_OPEN_NICK_SERVICES qq开放平台服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum QQ_OPEN_NICK_SERVICES {
+		get_user_info
+	}
+	
+	/**
+	 * SINA_OPEN_SERVICES sina开放平台服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum SINA_OPEN_SERVICES {
+		get_token_info,access_token
+	}
+	
+	
+	/**
+	 * RR_OPEN_SERVICES rr开放平台服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum RR_OPEN_SERVICES {
+		get
+	}
+	
+	/**
+	 * RR_OPEN_ACCESS_SERVICES rr开放平台服务提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum RR_OPEN_ACCESS_SERVICES {
+		token
+	}
+	
+	
+	/**
+	 * MOBILE_SERVER_SERVICES mobileserver提供的接口<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum MOBILE_SERVER_SERVICES {
+		third_login,third_bind
+	}
+
+	/**
+	 * AMS_SERVICES AMS服务提供的接口<br>
+	 * 参考文档 ： 《统一平台AMS子系统设计说明书.docx》
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:04:41
+	 */
+	public enum AMS_SERVICES {
+		reg, info, ein, emailpwd,thrlogin, mobilereg, mobileregvalidate, mobileregsubmit,emailreg, verifyemail,
+		changepassword, bindapply, bindsubmit, sendbindmail, bindmail,bindemail,resetingpwd,
+		login,resetingpwdemail,currentpay,receive,bindthirdquery,mobileregsubmitnopwd,changepwd,
+		sendFindPasswordEmail,adduserinfo,addbasemember,smsSend,smsSend2,emailSend,userlist,mortgageUserExists,getUserByAccount
+	}
+	/**
+	 * 文件系统服务接口
+	 * @ClassName: FS_SERVICES 
+	 * @author limh limh@zxsf360.com
+	 * @date 2014-12-9 下午02:19:47
+	 */
+	public enum FS_SERVICES {
+		base64Decode
+	}
+	/**
+	 * AMS_PARAMS AMS请求的参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum AMS_REQUEST_PARAMS {
+		bankId,city,headimg,team,contacts,userType,usertype,phone,smsContent,smsComeFrom,token,openid,logintype,brandid, bid, accounttype, account, email, macip, macdate, macrand, 
+		mac, ip, number, invitedby, invitedflag, from, location, ext, password,pwd, 
+		verifyCode, pform, psystem, ptype, cversion, uid, oldpassword,sign, newpassword, b, u, m, i, e, f,
+		loginType,emailcode,opentype,partner,sm,type,nickname,name,register,registerMobile,address,authCode,flag,nick
+	}
+	/**
+	 * AMS_RESPONSE_PARAMS AMS应答参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum AMS_RESPONSE_PARAMS {
+		code,result, uid, number, password, email, name,phone,userType,loginType,regTime,contacts,team,headimg
+	}
+	
+	/**
+	 * RATE_REQUEST_PARAMS RATE请求的参数列表
+	 * @author Jamin
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum RATE_REQUEST_PARAMS {
+		name, code, firstName
+	}
+	/**
+	 * RATE_REQUEST_PARAMS RATE请求的参数列表
+	 * @author Jamin
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum RATE_REQUEST_RESULTS {
+		countryCode, countryName, kcrate
+	}
+	/**
+	 * USER_PARAMS USER请求的参数列表
+	 * @author Jamin
+	 * @version v1.0 Enums.java 2013-10-22 上午09:01:10
+	 */
+	public enum USER_REQUEST_PARAMS {
+		brandid, bid, uid, b, u,m,e,f
+	}
+	
+	public enum CB_SERVICES{
+		cbRequest
+	}
+	public enum CB_REQUEST_PARAMS{
+		brandid,uid,sign,caller,called,ref
+	}
+	public enum CB_RESPONSE_PARAMS{
+		code
+	}
+
+	/**
+	 * SAS_SERVICES 推广系统子服务列表 <br>
+	 * 详细见：《推广系统接口文档.docx》
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 下午03:37:46
+	 */
+	public enum SAS_SERVICES {
+		/** 获取推荐人短链接*/
+		invitedurl,
+		/** 获取联盟短链接*/
+		extendurl
+	}
+
+	/**
+	 * SAS_PARAMS SAS请求的参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum SAS_REQUEST_PARAMS {
+		invitedway, invitedby, url, bid, macip, macdate, macrand, mac,
+		id
+	}
+
+	/**
+	 * SAS_RESPONSE_PARAMS SAS应答参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum SAS_RESPONSE_PARAMS {
+		result, extendurl
+	}
+
+	/**
+	 * SMS_SERVICES 短信系统子服务列表 <br>
+	 * 详细见：
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 下午03:37:46
+	 */
+	public enum SMS_SERVICES {
+		sms_http
+	}
+
+	/**
+	 * SMS_PARAMS SMS请求的参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum SMS_REQUEST_PARAMS {
+		phone, content, act, username, passwd, subuser
+	}
+
+	/**
+	 * SMS_RESPONSE_PARAMS SAS应答参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum SMS_RESPONSE_PARAMS {
+
+	}
+	
+	
+	/**
+	 * FN_REQUEST_PARAMS FN请求的参数列表
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-26 上午18:01:10
+	 */
+	public enum FN_REQUEST_PARAMS {
+		brandid,uid,number,old_number,new_number
+	}
+
+	/**
+	 * FN_RESPONSE_PARAMS FN应答的参数列表
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-26 上午18:01:10
+	 */
+	public enum FN_RESPONSE_PARAMS {
+		result,reason,
+	}
+	
+	/**
+	 * CREDITES_REQUEST_PARAMS CREDITES请求的参数列表
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-26 上午18:01:10
+	 */
+	public enum CREDITES_REQUEST_PARAMS {
+		brandid,uid,s_time,e_time,goods_id
+	}
+
+	/**
+	 * CREDITES_RESPONSE_PARAMS CREDITES应答的参数列表
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-26 上午18:01:10
+	 */
+	public enum CREDITES_RESPONSE_PARAMS {
+		result,reason,credits_info,credits
+	}
+	
+
+	/**
+	 * GIFT_SERVICES 短信系统子服务列表 <br>
+	 * 详细见：
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 下午03:37:46
+	 */
+	public enum GIFT_SERVICES {
+		giftno_exchange, // qq激活码等系列
+		gift
+		// 2013中秋节10元优惠券
+	}
+
+	/**
+	 * GIFT_PARAMS SMS请求的参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum GIFT_REQUEST_PARAMS {
+		bid, uid, channel, account,// 手机号
+		cdkey
+	}
+
+	/**
+	 * GIFT_RESPONSE_PARAMS SAS应答参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum GIFT_RESPONSE_PARAMS {
+		result, message
+	}
+	
+	
+	
+
+	/**
+	 * ORDER_SERVICES 短信系统子服务列表 <br>
+	 * 详细见：《订单系统接口文档.docx》
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 下午03:37:46
+	 */
+	public enum ORDER_SERVICES {
+		/** 检测用户是否首次充值*/
+		checkfirstpay,
+		/** 充值接口*/
+		currentpay,
+		card
+	}
+
+	/**
+	 * ORDER_PARAMS SMS请求的参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum ORDER_REQUEST_PARAMS {
+		/** checkfirstpay*/
+		uid,phone,sign,
+		/** currentpay*/
+		brandid,account,paytype,goodsid,pv,v,src,wmlflag,cardno,cardpwd,subbank,MoneyGroup,eventSubmit_doBuykcb,txtuid
+	}
+	
+	
+	
+	/**
+	 * QQ_OPEN_SERVICES qq开放平台请求的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum QQ_OPEN_REQUEST_PARAMS {
+		access_token,client_id,client_secret,grant_type,code,redirect_uri,
+		oauth_consumer_key,format,openid
+	}
+	
+	/**
+	 * QQ_OPEN_SERVICES qq开放平台应答的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum QQ_OPEN_RESPONSE_PARAMS {
+		access_token,nickname,figureurl_qq_1,gender,figureurl_qq_2
+	}
+	
+	/**
+	 * SINA_OPEN_SERVICES sina开放平台请求的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum SINA_OPEN_REQUEST_PARAMS {
+		access_token,client_id,client_secret,grant_type,code,redirect_uri,uid
+	}
+	
+	
+	/**
+	 * SINA_OPEN_SERVICES sina开放平台应答的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum SINA_OPEN_RESPONSE_PARAMS {
+		access_token,uid,screen_name,profile_image_url,gender,avatar_large
+	}
+	
+	/**
+	 * RR_OPENID_SERVICES rr开放平台请求的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum RR_OPEN_REQUEST_PARAMS {
+		client_id,client_secret,grant_type,code,redirect_uri,access_token
+	}
+	
+	/**
+	 * RR_OPEN_RESPONSE_PARAMS rr开放平台应答的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum RR_OPEN_RESPONSE_PARAMS {
+		response,id,access_token
+	}
+	
+	/**
+	 * MOBILE_SERVER_REQUEST_PARAMS mobileserver请求的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum MOBILE_SERVER_REQUEST_PARAMS {
+		accesstoken,appid,openid,opentype,brandid,
+		pv,v,pform,ip,from,ptype,invitedflag,invitedby,
+		invitedway,device_id,uid,pwd,user_token
+	}
+	
+	
+	/**
+	 * MOBILE_SERVER_RESPONSE_PARAMS mobile应答的参数列表<br>
+	 * @author lifh
+	 * @version v1.0 Enums.java 2013-11-16 上午13:04:41
+	 */
+	public enum MOBILE_SERVER_RESPONSE_PARAMS {
+		result,uid,pwd,is_qq_vip,first,loginType,name
+	}
+
+
+	/**
+	 * ORDER_RESPONSE_PARAMS SAS应答参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum ORDER_RESPONSE_PARAMS {
+		result,reason
+	}
+
+	/**
+	 * ORDER_SERVICES 短信系统子服务列表 <br>
+	 * 详细见：商品配置库
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 下午03:37:46
+	 */
+	public enum GOODS_INFO_SERVICES {
+		goods_info
+	}
+
+	/**
+	 * ORDER_PARAMS SMS请求的参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum GOODS_INFO_REQUEST_PARAMS {
+		bid, goods_id,
+	}
+
+	/**
+	 * ORDER_RESPONSE_PARAMS SAS应答参数列表
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum GOODS__RESPONSE_PARAMS {
+
+	}
+
+	/**
+	 * BC_SERVICES bc系统子服务列表
+	 * 
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 下午03:37:22
+	 */
+	public enum BC_SERVICES {
+		/** 用户账号余额及过期时间*/
+		user_wallet("user_wallet"),
+		/** 操作来电显示*/
+		operateDisplayNumber("operateDisplayNumber"),
+		/** vip信息*/
+		is_vip("is_vip"),
+		/** 查询通话记录*/
+		list_call_records("list_call_records"),
+		/** 查询用户套餐*/
+		query_user_package("pk/query_user_package"),
+		user_charge_log("user_charge_log");
+		private String serviceName;
+		private BC_SERVICES(String serviceName){
+			this.serviceName = serviceName;
+		}
+		public String getServiceName() {
+			return serviceName;
+		}
+		public void setServiceName(String serviceName) {
+			this.serviceName = serviceName;
+		}
+	}
+	/**
+	 * GOODS_SERVICES 商品系统子服务列表
+	 * 
+	 * @author Jamin
+	 * @version v1.0 Enums.java 2013-10-14 下午03:37:22
+	 */
+	public enum GOODS_CONFIG_SERVICES {
+		/**
+		 * 用户账号余额及过期时间
+		 */
+		goods_wallet("goods_cfg"),
+		pullmsg_wallet("pullmsg");
+		private String serviceName;
+		private GOODS_CONFIG_SERVICES(String serviceName){
+			this.serviceName = serviceName;
+		}
+		public String getServiceName() {
+			return serviceName;
+		}
+		public void setServiceName(String serviceName) {
+			this.serviceName = serviceName;
+		}
+	}
+	
+	public enum GOODS_CONFIG_REQUEST_PARAMS{
+		
+	}
+	
+	public enum GOODS_CONFIG_RESPONSE_PARAMS{
+		
+	}
+
+	/**
+	 * BC_PARAMS SMS请求的参数列表
+	 * 
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午09:01:10
+	 */
+	public enum BC_REQUEST_PARAMS{
+		uid,
+		brandid,bid,b,goodsId,pv,v,
+		operate,phone,sign,
+		macip,macdate,macrand,mac,
+		startdate,enddate,page,pagenums,
+		startTime,endTime
+	}
+
+	/**
+	 * BC_RESPONSE_PARAMS SAS应答参数列表
+	 * 
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-9-26 上午11:17:23
+	 */
+	public enum BC_RESPONSE_PARAMS{
+		result,
+		basicbalance,gift_valid_date,uid,enable_flag,brandid,create_time,valid_date,giftbalance,balance,
+		valid_time,
+		status,display_fee,start_time,flag,renewal_time,
+		/*查询套餐接口*/
+		packagelist,exp_time,package_name,call_time,buy_time,packagename,prefix,number,package_id,eff_time,month_left_time,use_type,
+		/*查询收支明细接口*/
+		charge_list,remark,log_id,money,charger_id,fee_type,brand_id,way,time,charger_name,charger_level,order_id,
+		/*查询通话记录接口 */
+		nums,list,amount,pagenums,page,agent_name,calledphone,calltime,to_ip,pkg_call_time,from_ip,callphone,call_week,endtime,starttime,field_units
+	}
+	
+	/**
+	 * 详细见 bc接口 operateDisplayNumber
+	 * BC_CALLER_OPERATE bc来电显示操作
+	 * @author Jerry
+	 * @version v1.0 Enums.java 2013-10-10 上午11:42:22
+	 */
+	public enum BC_CALLER_OPERATE{
+		/** 查询来显 */
+		search,
+		/** 打开来显 */
+		open,
+		/** 停止来显 */
+		stop,
+		/** 开通自动续费 */
+		recover,
+		/** 关闭自动续费 */
+		cancel
+	}
+	/**
+	 * 页面访问统计项key
+	 * @author Jerry
+	 */
+	public enum CPC_ITEM_KEY {
+		cpc_waphtml_index_view, cpc_wml_index_view, cpc_www_index_view
+	}
+	/**
+	 * 统计中出现的页面类型
+	 * @author Jerry
+	 */
+	public enum PAGE_TYPE {
+		/**web主站页面*/ www,
+		/**wap高端版本*/ waphtml,
+		/**wap-wml版本*/ wml
+	}
+	/** 兼容卖手机和pagetype对应*/
+	public enum UA{
+		/** www页面*/www,
+		/** waphtml页面*/html,
+		/** wml页面*/wml
+	}
+	/**
+	 * 访问页面的客户端类型
+	 * @author Jerry
+	 */
+	public enum PV {
+		/** wap网站*/ wap("wap官网"), 
+		/** www网站*/ web("web官网"),
+		/** pc网站*/ pc("PC客户端"), 
+		/** pc mini 客户端*/ mini("PC客户端"),
+		/** android客户端*/ android("Android"),
+		/** iPhone客户端*/ iphone("iPhone"),
+		/** iPad客户端*/ ipad("iPad"),
+		/** iPhone AppStore*/ iphone_app("iPhone AppStore"),
+		/** 塞班v3*/ s603("SymbianS60v3"),
+		/** 塞班v5*/ s605("SymbianS60v5"),
+		/** 塞班v2*/ s602("SymbianS60v2"),
+		/** 塞班其他*/ symbian("Symbian"),     
+		/** Java版*/ java("Java"),
+		/** windows phone版本*/ wm("windows phone版本"),
+		/** mtk版本*/ mtk("MTK"),
+		/** 默认匹配*/ unknown("默认匹配");
+		
+		private String describe;
+		
+		private PV(String describe){
+			this.describe = describe;
+		}
+
+		public String getDescribe() {
+			return describe;
+		}
+
+		public void setDescribe(String describe) {
+			this.describe = describe;
+		}
+	}
+	
+	/**
+	 * 统计项包含项目名称
+	 * @author Jerry
+	 */
+	public enum PROJ_NAME {
+		/** 充话费送手机4统计*/ ph4,
+		/** cpc着陆页统计*/ cpc
+	}
+	
+	/**
+	 * 充话费送手机监4统计项
+	 * @author Jerry
+	 */
+	public enum ITEM_KEY{
+		index_view,
+		order_view,
+		recharge_view,
+		bonding_view,
+		param_view,
+		www_200btn_click,
+		www_201btn_click,
+		www_bannerbtn_click,
+	}
+	
+	
+}

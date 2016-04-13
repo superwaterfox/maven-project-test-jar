@@ -1,0 +1,53 @@
+package com.zxsf360.mortgage.common;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * @author Kevin Chang
+ *
+ */
+public enum RoleEnum {
+	VALID_NO_PASS("0","未通过"),
+	VALID_PASS("1","已通过"),
+	ROLE_SALESMAN("7","普通用户"),
+	ROLE_MORTGAGEOFFICER("8","按揭员"),
+	ROLE_CUSTOMERMANAGER("9","客户经理"),
+	USER_CUSTOMERMANAGER_YANGJM("13423944501","杨杰明"),
+	USER_CUSTOMERMANAGER_LIUXJ("18822875335","刘小娟"),
+	USER_CUSTOMERMANAGER_MOLS("13692236886","莫经理");
+	private String code;
+	private String name;
+	/**
+	 * 
+	 */
+	private RoleEnum(String code,String name) {
+		this.code = code;
+		this.name = name;
+	}
+	public String getCode() {
+		return code;
+	}
+	public void setCode(String code) {
+		this.code = code;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public static String getNameByCode(String code){
+		if(StringUtils.isEmpty(code)){
+			return "";
+		}
+		String name = "";
+		for(RoleEnum roleEnum:RoleEnum.values()){
+			if(roleEnum.getCode().equals(code)){
+				name = roleEnum.getName();
+				break;
+			}
+		}
+		return name;
+	}
+}

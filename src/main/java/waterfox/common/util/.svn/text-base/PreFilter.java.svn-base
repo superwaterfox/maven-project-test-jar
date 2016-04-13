@@ -1,0 +1,151 @@
+package com.zxsf360.mortgage.common;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Vector;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+/**
+ * 
+ * @author Kevin Chang
+ *
+ */
+public class PreFilter implements Filter {
+	private static final Logger log = Logger
+			.getLogger(PreFilter.class);
+
+	public void doFilter(ServletRequest servletrequest,
+			ServletResponse servletresponse, FilterChain filterchain)
+			throws IOException, ServletException {
+		HttpServletRequest req = (HttpServletRequest) servletrequest;
+		HttpServletResponse res = (HttpServletResponse) servletresponse;
+		
+		if ("GET".equalsIgnoreCase(req.getMethod())) {
+			filterchain.doFilter(req, res);
+			return;
+		}
+		String queryString = getQueryString(req);// 通过流的方式读取POST的数据
+		String query = URLDecoder.decode(queryString, "utf-8");
+		Map<String, String> paraMap = new HashMap<String, String>();
+//		String param[] = query.split("&");
+//		String key = null;
+//		String array[];
+//		for (String string : param) {
+//			array = string.split("=");
+//			key = array[0];
+//			String value = null;
+//			if (array.length > 1) {
+//				value = array[1];
+//			}
+//			paraMap.put(key, value);
+//		}
+		JSONObject obj = new JSONObject().fromObject(query);
+		Iterator it = obj.keys();  
+        while (it.hasNext()) {  
+            String key = (String) it.next();  
+            String value = obj.getString(key);  
+            paraMap.put(key, value);
+        }  
+		ParameterRequestWrapper warp = new ParameterRequestWrapper(req, paraMap);
+		warp.setAttribute("queryString", queryString);
+		filterchain.doFilter(warp, res);
+	}
+
+	/**
+	 * 获取POST的请求串
+	 * 
+	 * @return
+	 */
+	private String getQueryString(ServletRequest req) throws IOException,
+			ServletException {
+		BufferedReader br = req.getReader();
+		StringBuffer sb = new StringBuffer();
+		String content = br.readLine();
+		while (content != null) {
+			sb.append(content);
+			content = br.readLine();
+		}
+		return sb.toString();
+	}
+
+	class ParameterRequestWrapper extends HttpServletRequestWrapper {
+		private Map params;
+		public ParameterRequestWrapper(HttpServletRequest request, Map newParams) {
+			super(request);
+			this.params = newParams;
+		}
+		public Map getParameterMap() {
+			return params;
+		}
+		public Enumeration getParameterNames() {
+			Vector l = new Vector(params.keySet());
+			return l.elements();
+		}
+		public String[] getParameterValues(String name) {
+			Object v = params.get(name);
+			if (v == null) {
+				return null;
+			} else if (v instanceof String[]) {
+				return (String[]) v;
+			} else if (v instanceof String) {
+				return new String[] { (String) v };
+			} else {
+				return new String[] { v.toString() };
+			}
+		}
+
+		public String getParameter(String name) {
+			Object v = params.get(name);
+			if (v == null) {
+				return null;
+			} else if (v instanceof String[]) {
+				String[] strArr = (String[]) v;
+				if (strArr.length > 0) {
+					return strArr[0];
+				} else {
+					return null;
+				}
+			} else if (v instanceof String) {
+				return (String) v;
+			} else {
+				return v.toString();
+			}
+		}
+
+	}
+
+	/**
+	 * 
+	 */
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * @param arg0
+	 * @throws ServletException
+	 */
+	public void init(FilterConfig arg0) throws ServletException {
+		// TODO Auto-generated method stub
+		
+	}
+}

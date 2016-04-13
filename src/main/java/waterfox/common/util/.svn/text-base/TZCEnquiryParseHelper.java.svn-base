@@ -1,0 +1,652 @@
+/**
+ * 
+ */
+package com.zxsf360.mortgage.common;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+
+import com.zxsf360.mortgage.bean.tzc.BankDto;
+import com.zxsf360.mortgage.bean.tzc.BuildingDto;
+import com.zxsf360.mortgage.bean.tzc.EnquiryAssessResp;
+import com.zxsf360.mortgage.bean.tzc.EnquiryReport;
+import com.zxsf360.mortgage.bean.tzc.EnquiryResp;
+import com.zxsf360.mortgage.bean.tzc.EstateDto;
+import com.zxsf360.mortgage.bean.tzc.ManagerDto;
+import com.zxsf360.mortgage.bean.tzc.RoomDto;
+import com.zxsf360.mortgage.bean.tzc.TaxResp;
+
+/**
+ * @author Kevin Chang
+ * 
+ */
+public class TZCEnquiryParseHelper {
+	private static final Log log = LogFactory
+			.getLog(TZCEnquiryParseHelper.class);
+
+	public static EnquiryResp parseEnquiryResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		EnquiryResp enquiryResp = null;
+		try {
+			// 将字符串转为XML
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			// 拿到根节点的名称
+			log.info("rootElement=" + rootElt.getName());
+			// 获取根节点下的子节点信息
+			String status = rootElt.elementTextTrim("status");
+			String errorCode = rootElt.elementTextTrim("errorCode");
+			String errorMessage = rootElt.elementTextTrim("errorMessage");
+			String returnValue = rootElt.elementTextTrim("returnValue");
+			enquiryResp = new EnquiryResp();
+			enquiryResp.setStatus(status);
+			enquiryResp.setErrorCode(errorCode);
+			enquiryResp.setErrorMessage(errorMessage);
+			enquiryResp.setReturnValue(returnValue);
+		} catch (DocumentException e) {
+			log.error("parseEnquiryResp DocumentException.", e);
+		} catch (Exception e) {
+			log.error("parseEnquiryResp Exception.", e);
+		}
+		return enquiryResp;
+	}
+
+	public static List<EnquiryReport> parsePoolingEnquiryResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<EnquiryReport> poolingEnquiryReports = null;
+		try {
+			// 将字符串转为XML
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			/**
+			 * 获取根节点下的子节点信息
+			 */
+			// 结果统计信息
+			int count = 0;
+			Element costCountElt = rootElt.element("costCount");
+			if (costCountElt != null) {
+				Element itemElt = costCountElt.element("item");
+				if (itemElt != null) {
+					// 返回询价结果条数
+					count = NumberUtils.toInt(itemElt.elementTextTrim("count"));
+				}
+			}
+			// 有返回最新询价结果
+			if (count > 0) {
+				poolingEnquiryReports = new ArrayList<EnquiryReport>();
+				Iterator<Element> iterator = rootElt
+						.elementIterator("cisReport");
+				while (iterator.hasNext()) {
+					Element element = iterator.next();
+					EnquiryReport enquiryReport = new EnquiryReport();
+					// 询价单流水号
+					String referID = element.attributeValue("referID");
+					enquiryReport.setReferID(referID);
+					// 询价时间
+					String referTime = element.attributeValue("referTime");
+					enquiryReport.setReferTime(referTime);
+					// 回复时间
+					String replyTime = element.attributeValue("replyTime");
+					enquiryReport.setReplyTime(replyTime);
+					Element resultElt = element.element("result");
+					if (resultElt != null) {
+						Element itemElt = resultElt.element("item");
+						if (itemElt != null) {
+							// 询价公司内部流水号
+							String pgsqID = itemElt.elementTextTrim("pgsqID");
+							enquiryReport.setPgsqID(pgsqID);
+							// 物业名称(必填项，字符型长度100)
+							String projectName = itemElt
+									.elementTextTrim("projectName");
+							enquiryReport.setProjectName(projectName);
+							// 栋号（必填项，字符型长度50）
+							String buildingName = itemElt
+									.elementTextTrim("buildingName");
+							enquiryReport.setBuildingName(buildingName);
+							// 房号（必填项，字符型长度50）
+							String houseName = itemElt
+									.elementTextTrim("houseName");
+							enquiryReport.setHouseName(houseName);
+							// 建筑面积（必填项，2为小数）
+							double buildingArea = NumberUtils.toDouble(
+									itemElt.elementTextTrim("buildingArea"), 0);
+							enquiryReport.setBuildingArea(buildingArea);
+							// 评估单价
+							double unitPrice = NumberUtils.toDouble(
+									itemElt.elementTextTrim("unitPrice"), 0);
+							enquiryReport.setUnitPrice(unitPrice);
+							// 评估总价
+							double totalPrice = NumberUtils.toDouble(
+									itemElt.elementTextTrim("totalPrice"), 0);
+							enquiryReport.setTotalPrice(totalPrice);
+							// 预计税费
+							double tax = NumberUtils.toDouble(
+									itemElt.elementTextTrim("tax"), 0);
+							enquiryReport.setTax(tax);
+							// 评估净值
+							double netPrice = NumberUtils.toDouble(
+									itemElt.elementTextTrim("netPrice"), 0);
+							enquiryReport.setNetPrice(netPrice);
+							// 评估单状态（0 已回复 1 无法评估）
+							String status = itemElt.elementTextTrim("status");
+							// 特别提示信息
+							String specialMessage = itemElt
+									.elementTextTrim("specialMessage");
+							// 无法评估
+							if ("1".equals(status)
+									|| ("0".equals(status) && "0"
+											.equals(totalPrice))) {
+								status = "-2";
+								specialMessage = "对不起，系统暂时无法评估此物业";
+							} else {
+								status = "1";
+								specialMessage = "";
+							}
+							enquiryReport.setStatus(status);
+							enquiryReport.setSpecialMessage(specialMessage);
+						}
+					}
+					poolingEnquiryReports.add(enquiryReport);
+				}
+			}
+		} catch (DocumentException e) {
+			log.error("parsePoolingEnquiryResp DocumentException.", e);
+		} catch (Exception e) {
+			log.error("parsePoolingEnquiryResp Exception.", e);
+		}
+		return poolingEnquiryReports;
+	}
+
+	/**
+	 * 解析楼盘数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static List<EstateDto> parseEstateResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<EstateDto> estateDtos = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			// 拿到根节点的名称
+			log.info("rootElement=" + rootElt.getName());
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element estatesElt = rootElt.element("Estates");
+				if (estatesElt != null) {
+					Iterator<Element> iterator = estatesElt
+							.elementIterator("Estate");
+					estateDtos = new ArrayList<EstateDto>();
+					while (iterator.hasNext()) {
+						Element estateItemElt = iterator.next();
+						String estateId = estateItemElt
+								.attributeValue("EstateId");
+						String estateName = estateItemElt
+								.attributeValue("EstateName");
+						EstateDto estateDto = new EstateDto();
+						estateDto.setEstateId(estateId);
+						estateDto.setEstateName(estateName);
+						estateDtos.add(estateDto);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseEstateResp Exception.", e);
+		}
+		return estateDtos;
+	}
+
+	/**
+	 * 解析楼栋数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static List<BuildingDto> parseBuildingResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<BuildingDto> buildingDtos = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element buildingsElt = rootElt.element("Buildings");
+				if (buildingsElt != null) {
+					Iterator<Element> iterator = buildingsElt
+							.elementIterator("Building");
+					buildingDtos = new ArrayList<BuildingDto>();
+					while (iterator.hasNext()) {
+						Element buildingItemElt = iterator.next();
+						String buildingId = buildingItemElt
+								.attributeValue("BuildingId");
+						String buildingName = buildingItemElt
+								.attributeValue("BuildingName");
+						BuildingDto buildingDto = new BuildingDto();
+						buildingDto.setBuildingId(buildingId);
+						buildingDto.setBuildingName(buildingName);
+						buildingDtos.add(buildingDto);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseBuildingResp Exception.", e);
+		}
+		return buildingDtos;
+	}
+
+	/**
+	 * 解析房号数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static List<RoomDto> parseRoomResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<RoomDto> roomDtos = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			// 拿到根节点的名称
+			log.info("rootElement=" + rootElt.getName());
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element flagsElt = rootElt.element("Flags");
+				if (flagsElt != null) {
+					Iterator<Element> iterator = flagsElt
+							.elementIterator("Flag");
+					roomDtos = new ArrayList<RoomDto>();
+					while (iterator.hasNext()) {
+						Element roomItemElt = iterator.next();
+						String flagId = roomItemElt.attributeValue("FlagId");
+						String flagName = roomItemElt
+								.attributeValue("FlagName");
+						RoomDto roomDto = new RoomDto();
+						roomDto.setFlagId(flagId);
+						roomDto.setFlagName(flagName);
+						roomDtos.add(roomDto);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseRoomResp Exception.", e);
+		}
+		return roomDtos;
+	}
+
+	/**
+	 * 解析银行数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static List<BankDto> parseBankResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<BankDto> bankDtos = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element banksElt = rootElt.element("Banks");
+				if (banksElt != null) {
+					Iterator<Element> iterator = banksElt
+							.elementIterator("Bank");
+					bankDtos = new ArrayList<BankDto>();
+					while (iterator.hasNext()) {
+						Element bankItemElt = iterator.next();
+						String bankId = bankItemElt.attributeValue("Id");
+						String bankName = bankItemElt.attributeValue("Name");
+						BankDto bankDto = new BankDto();
+						bankDto.setId(bankId);
+						bankDto.setName(bankName);
+						bankDtos.add(bankDto);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseBankResp Exception.", e);
+		}
+		return bankDtos;
+	}
+
+	/**
+	 * 解析银行支行数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static List<BankDto> parseSubBankResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<BankDto> bankDtos = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element banksElt = rootElt.element("SubBanks");
+				if (banksElt != null) {
+					Iterator<Element> iterator = banksElt
+							.elementIterator("SubBank");
+					bankDtos = new ArrayList<BankDto>();
+					while (iterator.hasNext()) {
+						Element bankItemElt = iterator.next();
+						String bankId = bankItemElt.attributeValue("Id");
+						String bankName = bankItemElt.attributeValue("Name");
+						BankDto bankDto = new BankDto();
+						bankDto.setId(bankId);
+						bankDto.setName(bankName);
+						bankDtos.add(bankDto);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseBankResp Exception.", e);
+		}
+		return bankDtos;
+	}
+
+	/**
+	 * 解析银行客户经理数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static List<ManagerDto> parseManagerResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		List<ManagerDto> managerDtos = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			// 拿到根节点的名称
+			log.info("rootElement=" + rootElt.getName());
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element managersElt = rootElt.element("Managers");
+				if (managersElt != null) {
+					Iterator<Element> iterator = managersElt
+							.elementIterator("Manager");
+					managerDtos = new ArrayList<ManagerDto>();
+					while (iterator.hasNext()) {
+						Element managerItemElt = iterator.next();
+						String bankId = managerItemElt.attributeValue("BankId");
+						String bankName = managerItemElt
+								.attributeValue("BankName");
+						String subBankId = managerItemElt
+								.attributeValue("SubBankId");
+						String subBankName = managerItemElt
+								.attributeValue("SubBankName");
+						String managerId = managerItemElt
+								.attributeValue("ManagerId");
+						String managerName = managerItemElt
+								.attributeValue("ManagerName");
+						ManagerDto managerDto = new ManagerDto();
+						managerDto.setBankId(bankId);
+						managerDto.setBankName(bankName);
+						managerDto.setSubBankId(subBankId);
+						managerDto.setSubBankName(subBankName);
+						managerDto.setManagerId(managerId);
+						managerDto.setManagerName(managerName);
+						managerDtos.add(managerDto);
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseManagerResp Exception.", e);
+		}
+		return managerDtos;
+	}
+
+	/**
+	 * 解析税费数据
+	 * 
+	 * @param xmlStr
+	 * @return
+	 */
+	public static TaxResp parseTaxResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		TaxResp taxResp = null;
+		// 将字符串转为XML
+		try {
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			String errorCode = rootElt.element("Error").attributeValue(
+					"ErrCode");
+			if ("0".equals(errorCode)) {
+				Element taxElt = rootElt.element("Tax");
+				if (taxElt != null) {
+					taxResp = new TaxResp();
+					// 评估总值
+					Element totalPriceElt = taxElt.element("totalPrice");
+					double totalPrice = 0;
+					if (totalPriceElt != null) {
+						totalPrice = NumberUtils.toDouble(
+								totalPriceElt.attributeValue("value"), 0);
+					}
+					// 评估净值
+					double netPrice = 0;
+					Element netPriceElt = taxElt.element("netPrice");
+					if (netPriceElt != null) {
+						netPrice = NumberUtils.toDouble(netPriceElt
+								.attributeValue("value"));
+					}
+					// 税费合计
+					double tax = 0;
+					Element taxAmountElt = taxElt.element("Tax");
+					if (taxAmountElt != null) {
+						tax = NumberUtils.toDouble(
+								taxAmountElt.attributeValue("value"), 0);
+					}
+					taxResp.setTotalPrice(totalPrice);
+					taxResp.setNetPrice(netPrice);
+					taxResp.setTax(tax);
+					// 营业税，单位元
+					double salesTax = 0;
+					Element salesTaxElt = taxElt.element("SalesTax");
+					if (salesTaxElt != null) {
+						salesTax = NumberUtils.toDouble(salesTaxElt
+								.attributeValue("value"));
+					}
+					taxResp.setSalesTax(salesTax);
+					// 城建税，单位元
+					double urbanTax = 0;
+					Element urbanTaxElt = taxElt.element("UrbanTax");
+					if (urbanTaxElt != null) {
+						urbanTax = NumberUtils.toDouble(urbanTaxElt
+								.attributeValue("value"));
+					}
+					taxResp.setUrbanTax(urbanTax);
+					// 教育费附件，单位元
+					double eduAttached = 0;
+					Element eduAttachedElt = taxElt.element("EduAttached");
+					if (eduAttachedElt != null) {
+						eduAttached = NumberUtils.toDouble(eduAttachedElt
+								.attributeValue("value"));
+					}
+					taxResp.setEduAttached(eduAttached);
+					// 印花税，单位元
+					double stamp = 0;
+					Element stampElt = taxElt.element("Stamp");
+					if (stampElt != null) {
+						stamp = NumberUtils.toDouble(stampElt
+								.attributeValue("value"));
+					}
+					taxResp.setStamp(stamp);
+					// 土地增值税，单位元
+					double landTax = 0;
+					Element landTaxElt = taxElt.element("LandTax");
+					if (landTaxElt != null) {
+						landTax = NumberUtils.toDouble(
+								landTaxElt.attributeValue("value"), 0);
+					}
+					taxResp.setLandTax(landTax);
+					// 所得税，单位元
+					double income = 0;
+					Element incomeElt = taxElt.element("Income");
+					if (incomeElt != null) {
+						income = NumberUtils.toDouble(incomeElt
+								.attributeValue("value"));
+					}
+					taxResp.setIncome(income);
+					// 交易手续费，单位元
+					double tranFees = 0;
+					Element tranFeesElt = taxElt.element("TranFees");
+					if (tranFeesElt != null) {
+						tranFees = NumberUtils.toDouble(tranFeesElt
+								.attributeValue("value"));
+					}
+					taxResp.setTranFees(tranFees);
+					// 契税，单位元
+					double deed = 0;
+					Element deedElt = taxElt.element("Deed");
+					if (deedElt != null) {
+						deed = NumberUtils.toDouble(deedElt
+								.attributeValue("value"));
+					}
+					taxResp.setDeed(deed);
+					// 拍卖处理费，单位元
+					double auctionFees = 0;
+					Element auctionFeesElt = taxElt.element("AuctionFees");
+					if (auctionFeesElt != null) {
+						auctionFees = NumberUtils.toDouble(auctionFeesElt
+								.attributeValue("value"));
+					}
+					taxResp.setAuctionFees(auctionFees);
+					// 诉讼费，单位元
+					double costs = 0;
+					Element costsElt = taxElt.element("Costs");
+					if (costsElt != null) {
+						costs = NumberUtils.toDouble(costsElt
+								.attributeValue("value"));
+					}
+					taxResp.setCosts(costs);
+					// 诉讼费，单位元
+					double regFees = 0;
+					Element regFeesElt = taxElt.element("RegFees");
+					if (regFeesElt != null) {
+						regFees = NumberUtils.toDouble(regFeesElt
+								.attributeValue("value"));
+					}
+					taxResp.setRegFees(regFees);
+					// 公证费，单位元
+					double notaryFees = 0;
+					Element notaryFeesElt = taxElt.element("NotaryFees");
+					if (notaryFeesElt != null) {
+						notaryFees = NumberUtils.toDouble(notaryFeesElt
+								.attributeValue("value"));
+					}
+					taxResp.setNotaryFees(notaryFees);
+					// 交易服务费，单位元
+					double serFees = 0;
+					Element serFeesElt = taxElt.element("SerFees");
+					if (serFeesElt != null) {
+						serFees = NumberUtils.toDouble(serFeesElt
+								.attributeValue("value"));
+					}
+					taxResp.setSerFees(serFees);
+					// 堤围费，单位元
+					double embankFees = 0;
+					Element embankFeesElt = taxElt.element("EmbankFees");
+					if (embankFeesElt != null) {
+						embankFees = NumberUtils.toDouble(embankFeesElt
+								.attributeValue("value"));
+					}
+					taxResp.setEmbankFees(embankFees);
+				}
+			}
+		} catch (Exception e) {
+			log.error("parseTaxResp Exception.", e);
+		}
+		return taxResp;
+	}
+	
+	/**
+	 * 解析申请评估报文
+	 * @param xmlStr
+	 * @return
+	 */
+	public static EnquiryAssessResp parseEnquiryAssessResp(String xmlStr) {
+		if (StringUtils.isEmpty(xmlStr)) {
+			return null;
+		}
+		Document doc = null;
+		EnquiryAssessResp assess = null;
+		try {
+			// 将字符串转为XML
+			doc = DocumentHelper.parseText(xmlStr);
+			// 获取根节点
+			Element rootElt = doc.getRootElement();
+			// 拿到根节点的名称
+			log.info("rootElement=" + rootElt.getName());
+			// 获取根节点下的子节点信息
+			String errCode = rootElt.elementTextTrim("errCode");
+			String errMsg = rootElt.elementTextTrim("errMsg");
+			assess = new EnquiryAssessResp();
+			assess.setErrCode(Integer.parseInt(errCode));
+			assess.setErrMsg(errMsg);
+		} catch (DocumentException e) {
+			log.error("parseEnquiryResp DocumentException.", e);
+		} catch (Exception e) {
+			log.error("parseEnquiryResp Exception.", e);
+		}
+		return assess;
+	}
+}

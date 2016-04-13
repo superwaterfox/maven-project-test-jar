@@ -1,0 +1,50 @@
+/**
+ * 
+ */
+package com.zxsf360.mortgage.common;
+
+/**
+ * @author Kevin Chang
+ *
+ */
+public enum PayStatusEnum {
+	TRADE_GOING(0, "交易中"), TRADE_FINISHED(1, "交易完成"), TRADE_SUCCESS(2, "交易成功"), TRADE_FAIL(
+			3, "交易失败");
+	private int code;
+	private String name;
+
+	/**
+	 * 
+	 */
+	private PayStatusEnum(int code, String name) {
+		this.code = code;
+		this.name = name;
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public static String getNameByCode(int code) {
+		String name = "";
+		for (PayStatusEnum roleEnum : PayStatusEnum.values()) {
+			if (roleEnum.getCode() == code) {
+				name = roleEnum.getName();
+				break;
+			}
+		}
+		return name;
+	}
+}

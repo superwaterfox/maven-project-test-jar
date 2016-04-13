@@ -1,0 +1,48 @@
+package com.zxsf360.mortgage.common;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Component;
+
+import com.zxsf360.mortgage.common.Enums.GLOBAL_CONFIG_KEY;
+
+/**
+ * GlobalConfig 系统配置常量
+ * @author Jerry
+ * @version v1.0 GlobalConfig.java 2013-9-25 下午04:20:18
+ */
+@Component
+public class GlobalConfig {
+	private Map<String, String> map;
+
+	@Resource
+	private Properties configProperties;
+
+	@SuppressWarnings("unused")
+	@PostConstruct
+	private void init() {
+		map = new HashMap<String, String>();
+		Set<Object> keys = configProperties.keySet();
+		for (Object key : keys) {
+			map.put(key.toString(),
+					configProperties.getProperty(key.toString()));
+		}
+	}
+
+	/**
+	 * 根据key获取 classpath:config.properties 中的value
+	 * @author Jerry
+	 * @version v1.0 2013-9-25 下午04:20:38 
+	 * @param global_config_key 
+	 * @return value
+	 */
+	public String get(GLOBAL_CONFIG_KEY global_config_key) {
+		return map.get(global_config_key.toString());
+	}
+}

@@ -1,0 +1,20 @@
+package com.zxsf360.mortgage.common;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+/**
+ * 随服务器启动初始化
+ * @author Kevin Chang
+ *
+ */
+public class Initializer extends HttpServlet{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2734954638025743505L;
+
+	@Override
+	public void init() throws ServletException {
+		
+	}
+}

@@ -1,0 +1,51 @@
+package com.zxsf360.mortgage.common;
+
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * @author Kevin Chang
+ *
+ */
+public enum GradeEnum {
+	GRADE_1_1("国有企业",1),
+	GRADE_1_2("政府机关",1),
+	GRADE_1_3("500强企业",1),
+	GRADE_2_1("一般企业员工",2),
+	GRADE_3_1("个体工商户",3),
+	GRADE_3_2("小企业主",3);
+	private String code;
+	private int name;
+	/**
+	 * 
+	 */
+	private GradeEnum(String code,int name) {
+		this.code = code;
+		this.name = name;
+	}
+	public String getCode() {
+		return code;
+	}
+	public void setCode(String code) {
+		this.code = code;
+	}
+	public int getName() {
+		return name;
+	}
+	public void setName(int name) {
+		this.name = name;
+	}
+	
+	public static int getNameByCode(String code){
+		if(StringUtils.isEmpty(code)){
+			return 0;
+		}
+		int name = 0;
+		for(GradeEnum roleEnum:GradeEnum.values()){
+			if(roleEnum.getCode().equals(code)){
+				name = roleEnum.getName();
+				break;
+			}
+		}
+		return name;
+	}
+}

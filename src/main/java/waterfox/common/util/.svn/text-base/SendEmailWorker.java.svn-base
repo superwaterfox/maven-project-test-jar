@@ -1,0 +1,29 @@
+package com.zxsf360.mortgage.common;
+
+import java.util.concurrent.Callable;
+
+import com.zxsf360.mortgage.domain.dto.JsonWrapper;
+import com.zxsf360.mortgage.domain.rpc.AmsService;
+
+public class SendEmailWorker implements Callable<String> {
+
+	private AmsService amsService;
+	private String title;
+	private String content;
+	private String email;
+
+	public SendEmailWorker(AmsService amsService, String title, String content,
+			String email) {
+		this.amsService = amsService;
+		this.title = title;
+		this.content = content;
+		this.email = email;
+	}
+
+	@Override
+	public String call() throws Exception {
+		 JsonWrapper jw = amsService.emailSend(title, email,content);
+		 return jw.getCode()+"";
+	}
+
+}

@@ -1,0 +1,569 @@
+package com.zxsf360.mortgage.common;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.stereotype.Controller;
+
+import com.zxsf360.mortgage.bean.MessageDto;
+import com.zxsf360.mortgage.bean.umeng.ReqIosUMDto;
+import com.zxsf360.mortgage.bean.umeng.TokenDto;
+import com.zxsf360.mortgage.bean.umeng.UMengConst;
+import com.zxsf360.mortgage.cache.RedisKey;
+import com.zxsf360.mortgage.cache.RedisOperator58;
+import com.zxsf360.mortgage.push.AndroidNotification;
+import com.zxsf360.mortgage.push.IOSNotification;
+import com.zxsf360.mortgage.push.android.AndroidGroupcast;
+import com.zxsf360.mortgage.push.android.AndroidListCast;
+import com.zxsf360.mortgage.push.android.AndroidUnicast;
+import com.zxsf360.mortgage.push.ios.IOSGroupcast;
+import com.zxsf360.mortgage.push.ios.IOSListcast;
+import com.zxsf360.mortgage.push.ios.IOSUnicast;
+import com.zxsf360.mortgage.service.MessageService;
+import com.zxsf360.mortgage.service.TokenDtoService;
+@Controller
+public class TokenController {
+	private Logger log = Logger.getLogger(getClass());
+	@Resource
+	private TokenDtoService tokenDtoService;
+	@Resource
+	private MessageService messageService;
+
+	/**
+	 * 单播
+	 * 
+	 * @param um
+	 * @return
+	 */
+	public RespData<String> unicast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(String.valueOf(RespStatusEnum.SUCCESS.getCode())),
+				RespStatusEnum.SUCCESS.getMsg());
+		String msg = "";
+		if (StringUtils.isNotEmpty(um.getImSecret())) {
+			RespData<String> rs1 = iosUnicast(um);
+			if (String.valueOf(RespStatusEnum.FAIL.getCode()).equals(rs1.getCode())) {
+				msg = "ios推送异常";
+			}
+		}
+		if (StringUtils.isNotEmpty(um.getAmSecret())) {
+			RespData<String> rs2 = androidUnicast(um);
+			if (String.valueOf(RespStatusEnum.FAIL.getCode()).equals(rs2.getCode())) {
+				msg += "android推送异常";
+			}
+		}
+		if (StringUtils.isNotEmpty(msg))
+			rs.setMsg(msg);
+		return rs;
+	}
+
+	/**
+	 * ios列播
+	 * 
+	 * @return
+	 */
+	public RespData<String> listcast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.SUCCESS.getCode()),
+				RespStatusEnum.SUCCESS.getMsg());
+		String msg = "";
+		if (StringUtils.isNotEmpty(um.getImSecret())) {
+			RespData<String> rs1 = iosListcast(um);
+			if (String.valueOf(RespStatusEnum.FAIL.getCode()).equals(rs1.getCode())) {
+				msg = "ios推送异常";
+			}
+		}
+		if (StringUtils.isNotEmpty(um.getAmSecret())) {
+			RespData<String> rs2 = androidListcast(um);
+			if (String.valueOf(RespStatusEnum.FAIL.getCode()).equals(rs2.getCode())) {
+				msg += "android推送异常";
+			}
+		}
+		if (StringUtils.isNotEmpty(msg))
+			rs.setMsg(msg);
+		return rs;
+	}
+	
+	
+	/**
+	 * ios组播
+	 * 
+	 * @return
+	 */
+	public RespData<String> groupCast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.SUCCESS.getCode()),
+				RespStatusEnum.SUCCESS.getMsg());
+		String msg = "";
+		if (StringUtils.isNotEmpty(um.getImSecret())) {
+			RespData<String> rs1 = iosGroupCast(um);
+			if (String.valueOf(RespStatusEnum.FAIL.getCode()).equals(rs1.getCode())) {
+				msg = "ios推送异常";
+			}
+		}
+		if (StringUtils.isNotEmpty(um.getAmSecret())) {
+			RespData<String> rs2 = androidGroupCast(um);
+			if (String.valueOf(RespStatusEnum.FAIL.getCode()).equals(rs2.getCode())) {
+				msg += "android推送异常";
+			}
+		}
+		if (StringUtils.isNotEmpty(msg))
+			rs.setMsg(msg);
+		return rs;
+		
+	}
+
+	/**
+	 * ios单播
+	 * 
+	 * @return
+	 */
+	public RespData<String> iosUnicast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			IOSUnicast unicast = new IOSUnicast();
+			Boolean result = iosCast(unicast, um);
+			if (result) {
+				rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+				rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	/**
+	 * ios列播
+	 * 
+	 * @return
+	 */
+	public RespData<String> iosListcast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			List<TokenDto> tdList = tokenDtoService
+					.findByType(UMengConst.TYPE_IOS);
+
+			if (CollectionUtils.isNotEmpty(tdList)) {
+				List<List<TokenDto>> list = splitByCount(tdList, 500);
+				for (List<TokenDto> tlist : list) {
+					List<MessageDto> msgList = new ArrayList<MessageDto>();
+					StringBuffer token = new StringBuffer();
+					for (TokenDto td : tlist) {
+						token.append(td.getToken()).append(",");
+						if (StringUtils.isNotEmpty(td.getUid())) {
+							MessageDto msg = getMsgDto(td.getUid(), um);
+							msgList.add(msg);
+						}
+					}
+					um.setTokens(token.toString().substring(0,
+							token.length() - 1));
+					IOSListcast unicast = new IOSListcast();
+					Boolean result = iosCast(unicast, um);
+					if (result) {
+						if (CollectionUtils.isNotEmpty(msgList)) {
+							this.messageService.addMessageList(msgList);
+						}
+						rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+						rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	/**
+	 * ios组播
+	 * 
+	 * @return
+	 */
+	public RespData<String> iosGroupCast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			List<TokenDto> tdList = tokenDtoService
+					.findByType(UMengConst.TYPE_IOS);
+			List<MessageDto> msgList = new ArrayList<MessageDto>();
+			if (CollectionUtils.isNotEmpty(tdList)) {
+				StringBuffer token = new StringBuffer();
+				for (TokenDto td : tdList) {
+					token.append(td.getToken()).append(",");
+					if (StringUtils.isNotEmpty(td.getUid())) {
+						MessageDto msg = getMsgDto(td.getUid(), um);
+						msgList.add(msg);
+					}
+				}
+				um.setTokens(token.toString().substring(0, token.length() - 1));
+				IOSGroupcast unicast = new IOSGroupcast();
+				Boolean result = iosCast(unicast, um);
+				if (result) {
+					if (CollectionUtils.isNotEmpty(msgList)) {
+						this.messageService.addMessageList(msgList);
+					}
+					rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+					rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	/**
+	 * android单播
+	 * 
+	 * @return
+	 */
+	public RespData<String> androidUnicast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			AndroidUnicast unicast = new AndroidUnicast();
+			Boolean result = androidCast(unicast, um);
+			if (result) {
+				rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+				rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	/**
+	 * android列播
+	 * 
+	 * @return
+	 */
+	public RespData<String> androidListcast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			List<TokenDto> tdList = tokenDtoService
+					.findByType(UMengConst.TYPE_ANDROID);
+			List<MessageDto> msgList = new ArrayList<MessageDto>();
+			if (CollectionUtils.isNotEmpty(tdList)) {
+
+				StringBuffer token = new StringBuffer();
+				for (TokenDto td : tdList) {
+					token.append(td.getToken()).append(",");
+					if (StringUtils.isNotEmpty(td.getUid())) {
+						MessageDto msg = getMsgDto(td.getUid(), um);
+						msgList.add(msg);
+					}
+				}
+				um.setTokens(token.toString().substring(0, token.length() - 1));
+				AndroidListCast unicast = new AndroidListCast();
+				Boolean result = androidCast(unicast, um);
+				if (result) {
+					if (CollectionUtils.isNotEmpty(msgList)) {
+						this.messageService.addMessageList(msgList);
+					}
+					rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+					rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	/**
+	 * ios列播
+	 * 
+	 * @return
+	 */
+	public RespData<String> androidGroupCast(ReqIosUMDto um) {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			List<TokenDto> tdList = tokenDtoService
+					.findByType(UMengConst.TYPE_ANDROID);
+			List<MessageDto> msgList = new ArrayList<MessageDto>();
+			if (CollectionUtils.isNotEmpty(tdList)) {
+				StringBuffer token = new StringBuffer();
+				for (TokenDto td : tdList) {
+					token.append(td.getToken()).append(",");
+					if (StringUtils.isNotEmpty(td.getUid())) {
+						MessageDto msg = getMsgDto(td.getUid(), um);
+						msgList.add(msg);
+					}
+				}
+				um.setTokens(token.toString().substring(0, token.length() - 1));
+				AndroidGroupcast unicast = new AndroidGroupcast();
+				Boolean result = androidGroupCast(unicast, um);
+				if (result) {
+					if (CollectionUtils.isNotEmpty(msgList)) {
+						this.messageService.addMessageList(msgList);
+					}
+					rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+					rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	private Boolean iosCast(IOSNotification cast, ReqIosUMDto um) {
+		Boolean flag = false;
+		try {
+			cast.setAppMasterSecret(um.getImSecret());
+			cast.setPredefinedKeyValue("appkey", UMengConst.IOS_APPKEY);
+			cast.setPredefinedKeyValue("timestamp", System.currentTimeMillis()
+					+ "");
+			// TODO Set your device token
+			// b852235f9a597c824fd14f3bdec852ead3dfde8d692fd625087995a3d798fd16
+			cast.setPredefinedKeyValue("device_tokens", um.getTokens());
+			cast.setPredefinedKeyValue("alert", um.getMsg());
+			cast.setPredefinedKeyValue("badge", 0);
+			cast.setPredefinedKeyValue("sound", "chime");
+			
+			// TODO set 'production_mode' to 'true' if your app is under
+			// production mode
+			cast.setPredefinedKeyValue("production_mode", "false");
+			// Set customized fields 设置自定义字段
+			cast.setCustomizedField("code", um.getCode());
+			cast.setCustomizedField("params", um.getParams());
+			flag = cast.send();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return flag;
+	}
+
+	private Boolean androidCast(AndroidNotification cast, ReqIosUMDto um) {
+		Boolean flag = false;
+		try {
+			cast.setAppMasterSecret(um.getAmSecret());
+			cast.setPredefinedKeyValue("appkey", UMengConst.ANDROID_APPKEY);
+			cast.setPredefinedKeyValue("timestamp", System.currentTimeMillis()
+					+ "");
+			cast.setPredefinedKeyValue("device_tokens", um.getTokens());
+			cast.setPredefinedKeyValue("ticker", "Android broadcast ticker");
+			cast.setPredefinedKeyValue("title", um.getTitle());
+			cast.setPredefinedKeyValue("text", um.getMsg());
+			cast.setPredefinedKeyValue("after_open", "go_custom");
+			cast.setPredefinedKeyValue("display_type", "notification");
+			// TODO Set 'production_mode' to 'false' if it's a test device.
+			// For how to register a test device, please see the developer doc.
+			cast.setPredefinedKeyValue("production_mode", "false");
+			// Set customized fields
+			cast.setExtraField("code",  um.getCode());
+			cast.setExtraField("params", um.getParams());
+			flag = cast.send();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return flag;
+	}
+
+	private Boolean androidGroupCast(AndroidNotification groupcast,
+			ReqIosUMDto um) {
+		Boolean flag = false;
+		try {
+			groupcast.setAppMasterSecret(um.getAmSecret());
+			groupcast
+					.setPredefinedKeyValue("appkey", UMengConst.ANDROID_APPKEY);
+			groupcast.setPredefinedKeyValue("timestamp",
+					System.currentTimeMillis() + "");
+			/*
+			 * TODO Construct the filter condition: "where": { "and": [
+			 * {"tag":"test"}, {"tag":"Test"} ] }
+			 */
+			JSONObject filterJson = new JSONObject();
+			JSONObject whereJson = new JSONObject();
+			JSONArray tagArray = new JSONArray();
+			JSONObject testTag = new JSONObject();
+			JSONObject TestTag = new JSONObject();
+			testTag.put("tag", "test");
+			TestTag.put("tag", "Test");
+			tagArray.put(testTag);
+			tagArray.put(TestTag);
+			whereJson.put("and", tagArray);
+			filterJson.put("where", whereJson);
+			System.out.println(filterJson.toString());
+			groupcast.setPredefinedKeyValue("device_tokens", um.getTokens());
+			groupcast.setPredefinedKeyValue("filter", filterJson);
+			groupcast.setPredefinedKeyValue("ticker",
+					"Android groupcast ticker");
+			groupcast.setPredefinedKeyValue("title", um.getTitle());
+			groupcast.setPredefinedKeyValue("text", um.getMsg());
+			groupcast.setPredefinedKeyValue("after_open", "go_app");
+			groupcast.setPredefinedKeyValue("display_type", "notification");
+			groupcast.setPredefinedKeyValue("production_mode", "true");
+			flag = groupcast.send();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return flag;
+	}
+
+	public RespData<String> iosSend() {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(RespStatusEnum.FAIL.getCode()), RespStatusEnum.FAIL.getMsg());
+		try {
+			IOSUnicast unicast = new IOSUnicast();
+			unicast.setAppMasterSecret(UMengConst.IOS_AMS);
+			unicast.setPredefinedKeyValue("appkey", UMengConst.IOS_APPKEY);
+			unicast.setPredefinedKeyValue("timestamp",
+					System.currentTimeMillis() + "");
+			// TODO Set your device token
+			unicast.setPredefinedKeyValue("device_tokens",
+					"b852235f9a597c824fd14f3bdec852ead3dfde8d692fd625087995a3d798fd16");
+			unicast.setPredefinedKeyValue("alert", "IOS 单播测试zzj");
+			unicast.setPredefinedKeyValue("badge", 0);
+			unicast.setPredefinedKeyValue("sound", "chime");
+			// TODO set 'production_mode' to 'true' if your app is under
+			// production mode
+			unicast.setPredefinedKeyValue("production_mode", "false");
+			// Set customized fields
+			unicast.setCustomizedField("test", "helloworld");
+			Boolean result = unicast.send();
+			if (result) {
+				rs.setCode(String.valueOf(RespStatusEnum.SUCCESS.getCode()));
+				rs.setMsg(RespStatusEnum.SUCCESS.getMsg());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	public RespData<String> androidSend() {
+		RespData<String> rs = new RespData<String>(
+				String.valueOf(String.valueOf(RespStatusEnum.FAIL.getCode())), RespStatusEnum.FAIL.getMsg());
+		try {
+			AndroidUnicast unicast = new AndroidUnicast();
+			unicast.setAppMasterSecret(UMengConst.ANDROID_AMS);
+			unicast.setPredefinedKeyValue("appkey", UMengConst.ANDROID_APPKEY);
+			unicast.setPredefinedKeyValue("timestamp",
+					System.currentTimeMillis() + "");
+			// TODO Set your device token
+			unicast.setPredefinedKeyValue("device_tokens",
+					"Ap1uQaksF8qujVz2SUq4lP-fJBqidLF8pA-vx_rmo_Sa");
+			unicast.setPredefinedKeyValue("ticker", "Android unicast ticker");
+			unicast.setPredefinedKeyValue("title", "测试推送zhuzj");
+			unicast.setPredefinedKeyValue("text", "恭喜你中奖");
+			unicast.setPredefinedKeyValue("after_open", "go_app");
+			unicast.setPredefinedKeyValue("display_type", "notification");
+			// TODO Set 'production_mode' to 'false' if it's a test device.
+			// For how to register a test device, please see the developer doc.
+			unicast.setPredefinedKeyValue("production_mode", "false");
+			// Set customized fields
+			unicast.setExtraField("test", "helloworld");
+			unicast.send();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rs;
+	}
+
+	private MessageDto getMsgDto(String uid, ReqIosUMDto um) {
+		MessageDto msg = new MessageDto();
+		msg.setCreateTime(new Date());
+		msg.setIsRead(0);
+		String title = um.getTitle();
+		title = StringUtils.isNotEmpty(title) ? title : "系统消息";
+		msg.setTitle(title);
+		msg.setContent(um.getMsg());
+		msg.setType(MessageDto.TYPE_1);
+		msg.setUserId(uid);
+		return msg;
+	}
+
+	private List<List<TokenDto>> splitByCount(List<TokenDto> tdList, int count) {
+		List<List<TokenDto>> list = new ArrayList<List<TokenDto>>();
+		List<TokenDto> tempList = null;
+		for (TokenDto td : tdList) {
+			if (CollectionUtils.isEmpty(tempList))
+				tempList = new ArrayList<TokenDto>();
+			if (tempList.size() == count) {
+				list.add(tempList);
+				tempList = null;
+			}
+			tempList.add(td);
+		}
+		if (CollectionUtils.isNotEmpty(tempList))
+			list.add(tempList);
+		return list;
+	}
+	/**
+	 * 推送消息
+	 * @param title
+	 * @param msg
+	 * @param tokens
+	 * @param code
+	 * @return
+	 */
+	public RespData<String> pushMsg(String title,String msg,String uid, String code,String params){
+		try{
+			List<TokenDto> tokenList = this.tokenDtoService.findByUid(uid);
+			for (TokenDto tokenDto : tokenList) {
+				String key = RedisKey.PREFIX.MORTGAGE_LOGININFO+
+				tokenDto.getSid()+RedisKey.SPLIT_FLAG+tokenDto.getDeviceId();
+				log.info("发送推送消息key="+key);
+				if(!RedisOperator58.checkKeyExisted(key)){//未登录状态不推送消息
+					log.info("判断为未登录，无法发送推送消息key="+key+"");
+					continue;
+				}
+				ReqIosUMDto um = new ReqIosUMDto();
+				um.setTokens(tokenDto.getToken());
+				um.setTitle(title);
+				um.setMsg(msg);
+				um.setCode(code);
+				um.setParams(params);
+				if(UMengConst.TYPE_IOS.equals(tokenDto.getType())){
+					um.setImSecret(UMengConst.IOS_AMS);
+					iosUnicast(um);
+				}else if(UMengConst.TYPE_ANDROID.equals(tokenDto.getType())){
+					um.setAmSecret(UMengConst.ANDROID_AMS);
+					androidUnicast(um);
+				}
+			}
+			this.messageService.addMessage(getMsgDto(uid, new ReqIosUMDto(title, msg)));
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	/**
+	 * 推送单个消息
+	 * @param title
+	 * @param msg
+	 * @param tokens
+	 * @param code
+	 * @return
+	 */
+	public RespData<String> pushSingleMsg(String title,String msg,String tokens, String code,String params){
+		try{
+			ReqIosUMDto um = new ReqIosUMDto(title, msg, tokens, code,params);
+			return  unicast(um);
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static void main(String[] args) {
+		String key = "MORTGAGE:LOGININFO:de570939b1937f4ae8d3864571be97c8:b57976df4323210ca132fe184813e3c3";
+		System.out.println(RedisOperator58.checkKeyExisted(key));
+		new TokenController().pushSingleMsg("快鸽按揭","快鸽按揭信用贷款", "Asoz6jUaxtdElbXuJUDhRrxrs_OTiO3ZsRKyTghem3PA", UMengConst.CODE_2_1, "20");
+	}
+}

@@ -1,0 +1,201 @@
+/**
+ * 
+ */
+package com.zxsf360.mortgage.common;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import com.zxsf360.mortgage.bean.EnquiryDto;
+import com.zxsf360.mortgage.bean.EnquiryFlowDto;
+import com.zxsf360.mortgage.bean.tzc.EnquiryReport;
+import com.zxsf360.mortgage.bean.tzc.TaxConditionDto;
+import com.zxsf360.mortgage.bean.tzc.TaxResp;
+import com.zxsf360.mortgage.common.util.DateUtil;
+import com.zxsf360.mortgage.common.util.UserBaseInfoCacheUtil;
+import com.zxsf360.mortgage.dao.EnquiryFlowDtoMapper;
+import com.zxsf360.mortgage.service.EnquiryService;
+import com.zxsf360.mortgage.service.ReportService;
+import com.zxsf360.mortgage.service.TZCEnquiryApiService;
+
+/**
+ * @author Kevin Chang
+ * 
+ */
+@Component
+public class EnquiryJob {
+	private static Log log = LogFactory.getLog(EnquiryJob.class);
+	@Resource
+	private EnquiryService enquiryService;
+	@Resource
+	private ReportService reportService;
+	@Resource
+	private TZCEnquiryApiService tzcEnquiryApiService;
+	@Resource
+	private EnquiryFlowDtoMapper enquiryFlowDtoMapper;
+	/**
+	 * 每1分钟执行一次
+	 */
+	//@Scheduled(cron = "0 0/1 * * * ?")
+	public void scheduleGetReport() {
+		log.info("scheduleGetReport start=============================");
+		List<EnquiryReport> enquiryReports = tzcEnquiryApiService.queryEnquiryReport(null);
+		if(enquiryReports!=null&&enquiryReports.size()>0){
+			//更新数据
+			for (EnquiryReport enquiryReport : enquiryReports) {
+				int enquiryid=0;
+				try {
+					String serialid = enquiryReport.getPgsqID();
+					EnquiryDto enquiryDto = enquiryService.selectBySerialid(serialid);
+					if(enquiryDto==null){
+						continue;
+					}
+					enquiryid=enquiryDto.getId();
+					EnquiryReport bak_report = reportService.selectReportInfo(enquiryid);
+					String bankId = bak_report.getBankId();
+					int reportId = bak_report.getId();
+					enquiryReport.setEnquiryid(enquiryid);
+					/**
+					 * 税费和净值
+					 */
+					TaxConditionDto taxConditionDto = new TaxConditionDto();
+					// 面积(必须)
+					taxConditionDto.setBuildSize(enquiryDto.getArea() + "");
+					// 购买时间(必须)
+					String range = enquiryDto.getRange();
+					// 未满五年
+					if ("0".equals(range)) {
+						Calendar calendar = Calendar.getInstance();
+						calendar.add(Calendar.YEAR, -2);
+						String d = DateUtil.getNowyyyyMMdd(calendar.getTime());
+						taxConditionDto.setBuyDate(d);
+					} else {
+						Calendar calendar = Calendar.getInstance();
+						calendar.add(Calendar.YEAR, -6);
+						String d = DateUtil.getNowyyyyMMdd(calendar.getTime());
+						taxConditionDto.setBuyDate(d);
+					}
+					// 评估目的：按揭类、个人企业信贷、消费贷、小微抵押授信
+					String judgeFor = "0";
+					if(enquiryDto.getConsumerloans()==1){
+						judgeFor="2";
+					}
+					taxConditionDto.setJudgeFor(judgeFor);
+					// 物业类型 住宅、非住宅、土地
+					if ("0".equals(enquiryDto.getPropertyuse())) {
+						taxConditionDto.setProperty("住宅");
+					} else {
+						taxConditionDto.setProperty("非住宅");
+					}
+					// 原购价：浮点数 单位 万元
+					String price = enquiryDto.getPrice() + "";
+					taxConditionDto.setRegPrice(price);
+					// 权属类型：个人、企业
+					String obligee = StringUtils.defaultString(
+							enquiryDto.getObligee(), "个人");
+					taxConditionDto.setRightType(obligee);
+					// 评估总值：浮点数 单位 万元
+					// 总额(万元)
+					double d_priceTotal = enquiryReport.getTotalPrice() / 10000.0;
+					taxConditionDto.setTotalPrice(d_priceTotal + "");
+					String[] bankIds = new String[]{bankId};
+					if(enquiryDto.getPay()==1||enquiryDto.getPay()==2){//优惠券/付费查询7大银行税费
+						bankIds = Constants.BANKIDARR;
+					}
+					Double tax=null;// 税费(单位:元)
+					Double netprice=null;// 净值(单位:万元)
+					for (int i=0;i<bankIds.length;i++) {
+						// 银行id
+						taxConditionDto.setBankId(bankIds[i]);
+						// 计算税费
+						TaxResp taxResp = tzcEnquiryApiService.tzcQueryTax(taxConditionDto);
+						if (taxResp != null) {
+							if(i==0){
+								tax = taxResp.getTax();
+								netprice = taxResp.getNetPrice();
+							}
+						}else if("2".equals(judgeFor)){
+							taxConditionDto.setJudgeFor("0");
+							taxResp = tzcEnquiryApiService.tzcQueryTax(taxConditionDto);
+							if(taxResp!=null&&i==0){
+								tax = taxResp.getTax();
+								netprice = taxResp.getNetPrice();
+							}
+						}
+						if(taxResp != null){
+							/**
+							 * 插入税费详情
+							 */
+							taxResp.setBankId(bankIds[i]);
+							taxResp.setReportId(reportId);
+							Integer rid = reportService.taxExit(taxResp);
+							if(rid==null){
+								reportService.insertTax(taxResp);
+							}
+						}
+					}
+					//已评估
+					enquiryReport.setStatus("1");
+					if(tax!=null){
+						enquiryReport.setTax(tax);
+					}
+					if(netprice!=null){
+						double d_netprice = netprice * 10000;
+						double sffive = d_netprice * 1.05 * 0.7;// 净值上浮5%
+						double sften = d_netprice * 1.1 * 0.7;// 净值上浮10%
+						enquiryReport.setNetPrice(d_netprice);
+						enquiryReport.setSffive(sffive);
+						enquiryReport.setSften(sften);
+					}
+					reportService.updateReport(enquiryReport);
+
+					try {
+						//更新同致诚评估总价
+						EnquiryDto ed = new EnquiryDto();
+						ed.setId(enquiryDto.getId());
+						ed.setTzctotalprice(enquiryReport.getTotalPrice());
+						enquiryService.updateTzcTotalPrice(ed);
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+					try {
+						EnquiryFlowDto edto = enquiryFlowDtoMapper.selectByEnquiryId(enquiryid);
+						if(edto!=null){
+							//银行客户经理回复询价
+							EnquiryFlowDto flow = new EnquiryFlowDto();
+							flow.setId(edto.getId());
+							flow.setEnquiryid(enquiryid);
+							flow.setStatus(CommEnum.ENQUIRY_REPLY.getCode().byteValue());
+							flow.setUpdatetime(new Date());
+							enquiryFlowDtoMapper.updateEnquiryFlowStatus(flow);// 更新询价流水状态
+						}
+						//客户经理或者付费询价自动回复（注意状态非已询价，排除世联评估公司已回复情况）
+						String userid = enquiryDto.getUserid();
+						String usertype = UserBaseInfoCacheUtil.getUserFieldInfo(userid, 
+								UserBaseInfoCacheUtil.USERTYPE);
+						if((enquiryDto.getStatus()!=CommEnum.ENQUIRY_FINISH.getCode().intValue())&&
+								(RoleEnum.ROLE_CUSTOMERMANAGER.getCode().equals(usertype)||
+								enquiryDto.getPay()==1||enquiryDto.getPay()==2)){
+							double replayprice = enquiryReport.getTotalPrice();
+							enquiryService.commitresult(userid, enquiryid, replayprice);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					log.info("enquiry id="+enquiryid+" tzc result add success.");
+				} catch (Exception e) {
+					log.error("enquiry id="+enquiryid+" tzc result add error",e);
+				}
+			}
+		}
+	}
+}

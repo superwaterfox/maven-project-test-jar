@@ -1,0 +1,33 @@
+package com.zxsf360.mortgage.common;
+
+import java.util.concurrent.Callable;
+
+import javax.annotation.Resource;
+
+import com.zxsf360.mortgage.domain.rpc.FsService;
+/**
+ * 
+ * @author Kevin Chang
+ *
+ */
+public class UploadWorker implements Callable<String>{
+	@Resource
+	private FsService fsService;
+	//文件名
+	private String fileId;
+	//base64字符图片
+	private String imgFile;
+	//上传路径
+	private String srcPath;
+	//
+	public UploadWorker(String fileId,String imgFile,String srcPath) {
+		this.fileId = fileId;
+		this.imgFile = imgFile;
+		this.srcPath = srcPath;
+	}
+	@Override
+	public String call() throws Exception {
+		return fsService.fsUpload(fileId, imgFile,"", srcPath);
+	}
+
+}
