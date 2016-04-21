@@ -216,7 +216,7 @@ public class BTFactoryProcessor implements PageProcessor {
 		for (int i = 1; i < 8; i++) {
 
 			// 国内
-			Spider.create(new BTFactoryProcessor()).addUrl("http://1024.hegongchang.kim/pw/thread.php?fid=3" + i)
+			Spider.create(new BTFactoryProcessor()).addUrl("http://bww.yakexi1024.net/pw/thread.php?fid=5&page=" + i)
 					.thread(2).run();// 入口处
 			// 国内骑
 			// Spider.create(new

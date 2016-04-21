@@ -2,6 +2,7 @@
 package getLoginBookIn;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 /**
@@ -96,8 +98,8 @@ public class BookIn {
 		}
 		int responseCode = urlConnection.getResponseCode();
 		System.out.println(url + ": result=" + responseCode);
-		// InputStream inputStream = urlConnection.getInputStream();
-		// String string = IOUtils.toString(inputStream);
+		InputStream inputStream = urlConnection.getInputStream();
+		// String string = IOUtils.toString(inputStream,"UTF-8");
 		// System.out.println(string);
 	}
 

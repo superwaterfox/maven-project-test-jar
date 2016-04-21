@@ -3,8 +3,8 @@ package geHeiHeiResource;
 import java.util.HashMap;
 import java.util.Map;
 
-import waterfox.common.util.http.HttpClientEntry;
-import waterfox.common.util.http.HttpClientUtil;
+import common.util.http.HttpClientEntry;
+import common.util.http.HttpClientUtil;
 
 public class Kuaidi100 {
 	public static void main(String[] args) {
