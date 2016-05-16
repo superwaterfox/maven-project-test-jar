@@ -25,14 +25,15 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
+
 /**
- * 相对合集，是分开的模块
+ * 最新合集
  * @Title BTFactoryProcessor
  * @Description 
  * @author ch
  * @Date 2016年5月14日 下午3:29:02
  */
-public class BTFactoryProcessor implements PageProcessor {
+public class BTFactoryProcessor2 implements PageProcessor {
 	// 部分一：配置网站的相关配置，包括头部信息，抓取间隔，重试次数等
 	private Site site = Site.me().setRetryTimes(3).setTimeOut(1000).setSleepTime(1)
 			.addHeader("Referer", "hk.1024cc.info").setDomain("1024cc.info");
@@ -82,6 +83,7 @@ public class BTFactoryProcessor implements PageProcessor {
 
 			List<String> smallIMG = page.getHtml().xpath("//div[@class='tpc_content' and @id='read_tpc']//img/@src")
 					.regex(".*.jpg").all();
+
 			for (String imageUrl : smallIMG) {
 				if (imageUrl.length() > 35) {
 					downImage(url, imageUrl, title);
@@ -90,11 +92,15 @@ public class BTFactoryProcessor implements PageProcessor {
 			// ----------------图片end---------------------
 
 			// ----------------下载链接start-------------------
-			String downloadlinks = page.getHtml().xpath("//div[@class='tpc_content' and @id='read_tpc']//a/@href")
-					.regex(".*/file.php/.*").get();
+			List<String> downloadlinks = page.getHtml().xpath("//div[@class='tpc_content' and @id='read_tpc']//a/@href")
+					.regex(".*/file.php/.*").all();
 
 			try {
-				downText(url, downloadlinks, title);
+				String downloadlink = "";
+				for (String string : downloadlinks) {
+					downloadlink += string+"\n\r";
+				}
+				downText(url, downloadlink, title);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -222,9 +228,8 @@ public class BTFactoryProcessor implements PageProcessor {
 		// thread(2).run();// 入口处
 		for (int i = 1; i < 8; i++) {
 
-			// 国内
-			Spider.create(new BTFactoryProcessor()).addUrl("http://bww.yakexi1024.net/pw/thread.php?fid=5&page=" + i)
-					.thread(2).run();// 入口处
+		//	Spider.create(new BTFactoryProcessor2()).addUrl("http://bww.yakexi1024.net/pw/thread.php?fid=3&page=" + i)
+			//		.thread(2).run();// 入口处
 			// 国内骑
 			// Spider.create(new
 			// BTFactoryProcessor()).addUrl("http://hk.1024cc.info/pw/thread.php?fid=22&page="
@@ -236,7 +241,7 @@ public class BTFactoryProcessor implements PageProcessor {
 			// + i).// 入口处
 			// thread(3).run();// 入口处
 		}
-		new BTFactoryProcessor().removeNoJPG();
+		new BTFactoryProcessor2().removeNoJPG();
 	}
 
 	/**

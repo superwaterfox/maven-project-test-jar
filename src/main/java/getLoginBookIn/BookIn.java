@@ -1,6 +1,8 @@
 
 package getLoginBookIn;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -9,6 +11,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -28,21 +31,10 @@ public class BookIn {
 	@Test
 	public void test1() {
 		try {
-			String url = "https://www.miaosguanwang.pw/api.php?cmd=gift500mb";
-			HashMap<Object, Object> requestProperty = new HashMap<Object, Object>();
-			requestProperty.put(":authority", "www.miaosguanwang.pw");
-			requestProperty.put(":method", "GET");
-			requestProperty.put(":path", "/panel.php");
-			requestProperty.put(":scheme", "https");
-			requestProperty.put("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-			requestProperty.put("accept-encoding", "gzip, deflate, sdch");
-			requestProperty.put("accept-language", "zh-CN,zh;q=0.8");
-			requestProperty.put("cache-control", "max-age=0");
-			requestProperty.put("cookie",
-					"__cfduid=dcdd51d099589bb7ad96fd900ae27bd6c1453869652; u2=f859a6cfe4b1a682bd4ac9411686d08f; CNZZDATA1254027205=449094086-1453864736-%7C1456105261");
-			requestProperty.put("upgrade-insecure-requests", "1");
-			requestProperty.put("user-agent",
-					"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36");
+//			String url = "https://www.miaosguanwang.pw/my/api.php?cmd=gift500mb";
+			String url = "https://www.miaosguanwang.pw/my/api.php?cmd=gift500mb";
+
+			HashMap<Object, Object> requestProperty = getTextMap("C:\\Users\\X\\Desktop\\1.txt");
 			UrlConnectionTest(url, "GET", requestProperty);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -99,8 +91,36 @@ public class BookIn {
 		int responseCode = urlConnection.getResponseCode();
 		System.out.println(url + ": result=" + responseCode);
 		InputStream inputStream = urlConnection.getInputStream();
-		// String string = IOUtils.toString(inputStream,"UTF-8");
-		// System.out.println(string);
+		String string = IOUtils.toString(inputStream, "UTF-8");
+		System.out.println(string);
+	}
+
+	public HashMap<Object, Object> getTextMap(String fileName) {
+		Scanner scanner = null;
+		HashMap<Object, Object> hashMap = new HashMap<>();
+		try {
+			scanner = new Scanner(new File(fileName));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		while (scanner.hasNextLine()) {
+			String nextLine = scanner.nextLine();
+			int lastIndexOf = 0;
+			String key = "";
+			String value = "";
+			if (nextLine.indexOf(":") == 0) {
+				lastIndexOf = nextLine.substring(1, nextLine.length()).indexOf(":");
+				key = nextLine.substring(0, lastIndexOf + 1);
+				value = nextLine.substring(lastIndexOf + 2, nextLine.length());
+			} else {
+				lastIndexOf = nextLine.indexOf(":");
+				key = nextLine.substring(0, lastIndexOf);
+				value = nextLine.substring(lastIndexOf + 1, nextLine.length());
+			}
+			System.out.println(key + "         " + value);
+			hashMap.put(key, value);
+		}
+		return hashMap;
 	}
 
 }

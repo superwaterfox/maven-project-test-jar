@@ -17,6 +17,8 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
+import us.codecraft.webmagic.selector.Html;
+import us.codecraft.webmagic.selector.Selectable;
 
 /**
  * http://521xunlei.com/portal.php
@@ -31,10 +33,10 @@ public class ThunderVIPProcessor implements PageProcessor {
 
 	@Override
 	public void process(Page page) {// 实现的主要抽取逻辑
-		
-		List<String> all = page.getHtml()
-				.xpath("//div[@id='portal_block_62_content']//div[@class='module cl xl xl1']//ul//li//a")
-				.regex("thread-[\\d]{4}-[\\d]-[\\d].html").all();
+
+		//// *[@id="portal_block_62_content"]/div/ul/li[1]/a
+		List<String> all = page.getHtml().xpath("//div[@id='portal_block_62_content']//div//ul//li//a")
+				.regex("thread-[\\d]{5}-[\\d]-[\\d].html").all();
 		List<String> times = page.getHtml()
 				.xpath("//div[@id='portal_block_62_content']//div[@class='module cl xl xl1']//ul//li//em/allText()")
 				.all();
@@ -55,13 +57,13 @@ public class ThunderVIPProcessor implements PageProcessor {
 				e.printStackTrace();
 			}
 		}
-		//*[@id="postmessage_179722"]/font[17]/font
-		List<String> all2 = page.getHtml().xpath("//*[@id='postmessage_179722']/font[@size='5']/font/allText()").all();
-		for (String string2 : all2)
-		{
+		//// *[@id="postmessage_187074"]
+		List<String> all2 = page.getHtml().xpath("//tbody//tr//td[@class='t_f']//font[@color='#000080']//html()").all();
+		
+		for (String string2 : all2) {
 			string2 = filterUseful(string2);
 			if (StringUtils.isNotEmpty(string2)) {
-				System.out.println(string2.replace("账号", "账号 ").replace("密码", "密码 "));
+				System.out.println(string2.replace("fontsize\"5\"", "").replace("br", "  ").replace("font", ""));
 			}
 		}
 
@@ -88,8 +90,8 @@ public class ThunderVIPProcessor implements PageProcessor {
 	public static void main(String[] args) {
 		Spider.create(new ThunderVIPProcessor()).addUrl("http://521xunlei.com/portal.php").// 入口处
 				thread(1).run();// 入口处
-		
-		//521xunlei.com
+
+		// 521xunlei.com
 	}
 
 	@Test

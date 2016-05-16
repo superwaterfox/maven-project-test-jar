@@ -52,10 +52,10 @@ public class ThunderVIPProcessor2 implements PageProcessor {
 			 * 进入详情页
 			 */
 			// *[@id="divMain"]/div[1]/div[4]/div[7]
-			// *[@id="divMain"]/div[1]/div[4]/div[20]
-			List<String> all2 = page.getHtml().xpath("//*[@id='divMain']/div[1]/div[4]/div//text()").all();
+			////*[@id="divMain"]/div[1]/div[4]
+			List<String> all2 = page.getHtml().xpath("//*[@id='divMain']/div[1]/div[4]//div//text()").all();
 			for (String string2 : all2) {
-				System.out.println(string2.replace("密码", "密码 ").replace("账号", "账号 "));
+				System.out.println(string2.replace("密码", " 密码 ").replace("账号", "账号 "));
 			}
 		}
 

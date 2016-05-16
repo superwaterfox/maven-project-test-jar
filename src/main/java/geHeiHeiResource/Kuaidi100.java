@@ -13,7 +13,7 @@ public class Kuaidi100 {
 		String text = "377575213096";
 
 		HttpClientEntry httpClientEntry = new HttpClientEntry();
-		Map<String, String> request_NameValue = new HashMap<String, String>();
+		Map<String, Object> request_NameValue = new HashMap<String, Object>();
 		request_NameValue.put("text", text);
 		httpClientEntry.setRequest_NameValuePairMap(request_NameValue);
 
@@ -24,7 +24,7 @@ public class Kuaidi100 {
 		// 根据快递单号和快递公司进行查询
 		// http://www.kuaidi100.com/query?type=zhongtong&postid=377575213096&id=1&valicode=&temp=0.4304088514763862
 		HttpClientEntry httpClientEntry1 = new HttpClientEntry();
-		Map<String, String> request_NameValue1 = new HashMap<String, String>();
+		Map<String, Object> request_NameValue1 = new HashMap<String, Object>();
 		request_NameValue1.put("postid", text);
 		request_NameValue1.put("type", "zhongtong");
 		request_NameValue1.put("temp", "0.5738821462728083");
