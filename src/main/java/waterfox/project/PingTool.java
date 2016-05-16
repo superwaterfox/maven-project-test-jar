@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MyTool {
+public class PingTool {
 
 	public static boolean ping(String ipAddress, int pingTimes, int timeOut) {
 		BufferedReader in = null;
